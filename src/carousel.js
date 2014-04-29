@@ -91,6 +91,7 @@
             var me = this;
             var body = $(document.body)
             var curTouch, startX, startY, deltaX, deltaY, dir;
+            var isAutoplay;
 
             element.on('touchstart', function(ev) {
                 curTouch = ev.touches[0];
@@ -133,6 +134,7 @@
             }
 
             this.on('swipestart', function() {
+                isAutoplay = this.get('autoplay');
                 this.set('autoplay', false);
             })
 
@@ -165,7 +167,7 @@
                     me.get('eles.middle').animate(me._getOffsetXCss(0), RECUR_DURATION, 'ease');
                     next.animate(me._getOffsetXCss(nextOffset), RECUR_DURATION, 'ease');
                 }
-                this.set('autoplay', true);
+                this.set('autoplay', isAutoplay);
             });
         },
 
@@ -187,9 +189,10 @@
                 this.dir = to > index ? 1 : -1;
             }
 
+            var isAutoplay = this.get('autoplay');
             this.set('autoplay', false);
             this.switch(to);
-            this.set('autoplay', true);
+            this.set('autoplay', isAutoplay);
         },
 
         _beforePrev: function() {

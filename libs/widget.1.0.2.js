@@ -1,6 +1,6 @@
 /* Version 1.0.2 */
-
-// Inspired by base2 and Prototype
+    
+// Inspired by base2 and Prototype.
 (function() {
     var initializing = false;
 
