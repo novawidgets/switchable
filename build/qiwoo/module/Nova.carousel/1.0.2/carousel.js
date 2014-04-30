@@ -1,4 +1,15 @@
-(function() {
+(function(root, factory) {
+if(typeof exports === 'object') {
+module.exports = factory();
+} else if(typeof define === 'function' && define.amd) {
+define(['module/Nova.switchable/1.0.2/switchable'], factory);
+} else {
+root['Carousel'] = factory();
+}
+})(this, function(Switchable) {
+Switchable = Switchable || this.Switchable;
+
+
     var prefix = (function () {
         var styles = window.getComputedStyle(document.documentElement, ''),
         pre = (Array.prototype.slice
@@ -328,5 +339,5 @@
 
     /***************************** End of Class Carousel ******************************/
 
-    this.Carousel = Carousel;
-})();
+    return Carousel;
+});
