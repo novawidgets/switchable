@@ -6,7 +6,7 @@
         "module": "Nova.switchable",
         "src": "src/switchable.js",
         "requires": {
-            "widget": "module/widget/1.0.2/widget"
+            "Widget": "module/widget/1.0.2/widget"
         }
     },
     "carousel": {
@@ -23,7 +23,7 @@
         "module": "Nova.carousel",
         "src": "src/carousel.js",
         "requires": {
-            "switchable": "module/Nova.switchable/1.0.2/switchable"
+            "Switchable": "module/Nova.switchable/1.0.2/switchable"
         }
     },
     "tab": {
@@ -41,7 +41,7 @@
         "module": "Nova.tab",
         "src": "src/tab.js",
         "requires": {
-            "carousel": "module/Nova.carousel/1.0.2/carousel"
+            "Carousel": "module/Nova.carousel/1.0.2/carousel"
         }
     }
 }
