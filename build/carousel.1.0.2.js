@@ -193,18 +193,24 @@
             var curTouch, startX, startY, deltaX, deltaY, dir;
             var isAutoplay;
 
-            element.on('touchstart', function(ev) {
-                curTouch = ev.touches[0];
-                startX = curTouch.pageX;
-                startY = curTouch.pageY;
-                deltaX = 0;
-                deltaY = 0;
-                dir = undefined;
+            body.on('touchstart', function(ev) {
+                body.off('touchmove', touchmoveHandler);
+                body.off('touchend', touchendHandler);
 
-                body.on('touchmove', touchmoveHandler) 
-                body.on('touchend', touchendHandler);
+                if ( element[0] === ev.target || element[0].contains(ev.target) ) {
 
-                me.trigger('swipestart');
+                    curTouch = ev.touches[0];
+                    startX = curTouch.pageX;
+                    startY = curTouch.pageY;
+                    deltaX = 0;
+                    deltaY = 0;
+                    dir = undefined;
+
+                    body.on('touchmove', touchmoveHandler);
+                    body.on('touchend', touchendHandler);
+
+                    me.trigger('swipestart');
+                }
             });
 
             function touchmoveHandler(ev) {

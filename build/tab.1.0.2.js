@@ -197,7 +197,7 @@
                 body.off('touchmove', touchmoveHandler);
                 body.off('touchend', touchendHandler);
 
-                if ( element[0].contains(ev.target) ) {
+                if ( element[0] === ev.target || element[0].contains(ev.target) ) {
 
                     curTouch = ev.touches[0];
                     startX = curTouch.pageX;
@@ -234,7 +234,6 @@
 
             function touchendHandler(ev) {
                 if(dir == 1) { return; }
-
                 me.trigger('swipeend', [deltaX]);
                 body.off('touchmove', touchmoveHandler); 
                 body.off('touchend', touchendHandler);

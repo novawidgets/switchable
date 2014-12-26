@@ -114,7 +114,7 @@
                 body.off('touchmove', touchmoveHandler);
                 body.off('touchend', touchendHandler);
 
-                if ( element[0].contains(ev.target) ) {
+                if ( element[0] === ev.target || element[0].contains(ev.target) ) {
 
                     curTouch = ev.touches[0];
                     startX = curTouch.pageX;
