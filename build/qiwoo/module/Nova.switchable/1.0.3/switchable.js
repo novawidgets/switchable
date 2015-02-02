@@ -2,7 +2,7 @@
 if(typeof exports === 'object') {
 module.exports = factory();
 } else if(typeof define === 'function' && define.amd) {
-define(['module/widget/1.0.3/widget'], factory);
+define(['module/widget/1.0.2/widget'], factory);
 } else {
 root['Switchable'] = factory();
 }

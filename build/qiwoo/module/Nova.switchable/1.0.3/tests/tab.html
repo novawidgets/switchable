@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <link rel="stylesheet" href="http://s4.qhimg.com/static/c8243de50db4649c/mocha.css" />
+    <link rel="stylesheet" href="../build/tab.1.0.2.css">
+
+    <script type="text/javascript" src="http://s0.qhimg.com/static/24fee17ef5eeefee/zepto_touch_fx.112.js"></script>
+    <script src="../libs/widget.1.0.2.js"></script>
+    <script src="../build/tab.1.0.2.js"></script>
+    <script type="text/javascript" src="http://s0.qhimg.com/static/05e5e157e7b8d30d/mocha.js"></script>
+    <script type="text/javascript" src="http://s4.qhimg.com/static/3277fa15cc2352ec/chai.js"></script>
+    <script type="text/javascript" src="http://s0.qhimg.com/static/a544ceb156ebf3bf/sinon.js"></script>
+
+    <style type="text/css">
+        .cont-item img {
+            -webkit-user-drag: none;
+        }
+    </style>
+   
+</head>
+<body>
+    <div id="mocha"></div>
+    <div class="tab" data-index="0" data-api="on" data-open-animate="true" style="display:none">
+        <div class="tab-control" data-role="control">
+            <div class="control-item">Tab1</div>
+            <div class="control-item">Tab2</div>
+            <div class="control-item">Tab3</div>
+        </div>
+        <div class="tab-cont" data-role="content">
+            <div class="cont-item">
+                <img src="1.jpg" alt="" />
+            </div>
+            <div class="cont-item">
+                <img src="2.jpg" alt="" />
+            </div>
+            <div class="cont-item">
+                <img src="3.jpg" alt="" />
+            </div>
+        </div>
+    </div>
+    <script>
+        mocha.setup('bdd');
+        chai.should();
+        var expect = chai.expect;
+        var define = function (name, requires, factory) { 
+            if(typeof name === 'function') {
+                factory = name;
+            } else if(typeof requires === 'function') {
+                factory = requires;
+            }
+
+            if(typeof module != 'undefined'){
+                module.exports = factory(require); 
+            }else if(typeof window != 'undefined'){
+                factory();
+            }
+        };
+        
+    </script>
+    <script src="switchable-spec.js"></script>
+    <script>
+        //mocha.run();
+
+        var tab = new Tab({
+            element: '.tab',
+            swipable: true,
+            className: 'nova-tab',
+            autoplay: true,
+            autoplay_interval_ms: 2000,
+            recursive: false,
+            selectors: {
+                contItem: '.tab-cont div',
+                controlItem: '.tab-control div'
+            }
+        });
+
+        tab.on('beforeSlide', function(ev, to, from) {
+            //console.log(from, to);
+        });
+    </script>
+</body>
+</html>

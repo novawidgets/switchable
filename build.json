@@ -6,7 +6,7 @@
         "module": "Nova.switchable",
         "src": "src/switchable.js",
         "requires": {
-            "Widget": "module/widget/1.0.3/widget"
+            "Widget": "module/widget/1.0.2/widget"
         }
     },
     "carousel": {
