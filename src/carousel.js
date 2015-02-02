@@ -59,7 +59,7 @@
             me.contItems = me.$element.find(selectors.content).find(selectors.contItem);
             me.controlItems = me.$element.find(selectors.control).find(selectors.controlItem);
             me.dirLength = me._getSlideLength();
-            
+
             // 绑定index, eles的change事件
             me.on('change:index', me._onChangeIndex);
             me.on('change:eles', me._onChangeEles);
@@ -72,7 +72,7 @@
             me.delegateEvents(me.controlItems, 'tap', me._controlTapHandler);
 
             // 设置index, count
-            me.set('count', me.contItems.length);                
+            me.set('count', me.contItems.length);
 
             // 如果标签数小于或等于2，则关闭可循环
             if(me.get('count') <= 2) {
@@ -112,8 +112,10 @@
             var isAutoplay;
 
             body.on('touchstart', function(ev) {
+                isAutoplay = me.get('autoplay');
                 body.off('touchmove', touchmoveHandler);
                 body.off('touchend', touchendHandler);
+                body.off('touchcancel', touchendHandler);
 
                 if ( element[0] === ev.target || element[0].contains(ev.target) ) {
 
@@ -126,6 +128,7 @@
 
                     body.on('touchmove', touchmoveHandler);
                     body.on('touchend', touchendHandler);
+                    body.on('touchcancel', touchendHandler);
 
                     me.trigger('swipestart');
                 }
@@ -151,6 +154,7 @@
             }
 
             function touchendHandler(ev) {
+                me.set('autoplay', isAutoplay);
                 if(me.slideDir + swipeDir == 0) return;
                 me.trigger('swipeend', [me.slideDir == -1 ? deltaX : deltaY]);
                 body.off('touchmove', touchmoveHandler); 
@@ -158,7 +162,6 @@
             }
 
             this.on('swipestart', function() {
-                isAutoplay = this.get('autoplay');
                 this.set('autoplay', false);
             })
 
@@ -191,7 +194,6 @@
                     me.get('eles.middle').animate(me._getOffsetCss(0), RECUR_DURATION, 'ease');
                     next.animate(me._getOffsetCss(nextOffset), RECUR_DURATION, 'ease');
                 }
-                this.set('autoplay', isAutoplay);
             });
         },
 
@@ -299,9 +301,9 @@
             this._placeTo(eles.after, this.dirLength);
         },
 
-        _placeTo: function(ele, offset) {   
+        _placeTo: function(ele, offset) {
             if(!ele) return;
-            var cssObj = this._getOffsetCss(offset);                
+            var cssObj = this._getOffsetCss(offset);
             ele.css(cssObj);
         },
 
