@@ -13,13 +13,11 @@
                   css: '-' + pre + '-',
                   js: pre[0].toUpperCase() + pre.substr(1)
               };
-    })(); 
+    })();
 
     var SWIPE_DISTANCE_MIN = 25,
         RECUR_DURATION = 200,
         TRANSFORM_PROPERTY_NAME = prefix['css'] + 'transform';
-  
-
 
     /***************************** Class Carousel ******************************/
 
@@ -32,7 +30,7 @@
             autoplay: false,            // 自动轮播
             autoplay_interval_ms: 10000,   // 自动轮播间隔
             swipable: true,             // 是否可滑动
-
+            direction : 'horizontal',                   //水平
             selectors: {
                 content: '.carousel-cont',
                 contItem: '.cont-item',
@@ -44,9 +42,9 @@
 
             // 内部使用属性
             eles: {
-                left: null,
+                before: null,
                 middle: null,
-                right: null,
+                after: null,
                 control: null
             }
         },
@@ -54,15 +52,14 @@
 
         setup: function () {
             Carousel.superclass.setup && Carousel.superclass.setup.apply(this, arguments);
-
             var me = this;
             var selectors = me.get('selectors');
-            
+            me.slideDir = this.get('direction') == 'vertical' ? 1 : -1;
             // 初始化DOM
             me.contItems = me.$element.find(selectors.content).find(selectors.contItem);
             me.controlItems = me.$element.find(selectors.control).find(selectors.controlItem);
-            me.width = me.contItems.width();
-
+            me.dirLength = me._getSlideLength();
+            
             // 绑定index, eles的change事件
             me.on('change:index', me._onChangeIndex);
             me.on('change:eles', me._onChangeEles);
@@ -88,7 +85,7 @@
             }
 
             // 选中第一个
-            this.set('index', this.get('index'));
+            this.set('index', parseInt(this.get('index')));
 
             this.get('swipable') && this._initSwipe(me.contItems.parent());
 
@@ -97,17 +94,21 @@
             this.render();
         },
 
+        _getSlideLength : function() {
+            return this.slideDir == -1 ? this.contItems.parent().width() : this.contItems.parent().height();
+        },
+
         refresh: function() {
-            this.width = this.contItems.parent().width();
-            this._placeTo(this.get('eles.left'), -this.width);
-            this._placeTo(this.get('eles.right'), this.width);
+            this.dirLength = this._getSlideLength();
+            this._placeTo(this.get('eles.before'), -this.dirLength);
+            this._placeTo(this.get('eles.after'), this.dirLength);
         },
 
 
         _initSwipe: function(element) {
             var me = this;
             var body = $(document.body)
-            var curTouch, startX, startY, deltaX, deltaY, dir;
+            var curTouch, startX, startY, deltaX, deltaY, swipeDir;
             var isAutoplay;
 
             body.on('touchstart', function(ev) {
@@ -121,7 +122,7 @@
                     startY = curTouch.pageY;
                     deltaX = 0;
                     deltaY = 0;
-                    dir = undefined;
+                    swipeDir = undefined;
 
                     body.on('touchmove', touchmoveHandler);
                     body.on('touchend', touchendHandler);
@@ -134,24 +135,24 @@
                 var touch = ev.touches[0];
                 deltaX = touch.pageX - startX;
                 deltaY = touch.pageY - startY;
-
-                // 1: 垂直方向 -1: 水平方向
-                if(dir == undefined) {
-                    dir = Math.abs(deltaY) > Math.abs(deltaX) ? 1 : -1;
+                // 手指初始触摸的方向 1: 垂直方向 -1: 水平方向
+                if(swipeDir == undefined) {
+                    swipeDir = Math.abs(deltaY) > Math.abs(deltaX) ? 1 : -1;
                 }
 
-                // 垂直
-                if(dir == 1) {
-                    return;
-                }
+                //如果 手指初始触摸的方向 跟设置的组件的滑动方向不同， 不滑动组件
+                if(me.slideDir + swipeDir == 0) return;
 
                 ev.preventDefault();
-                me.trigger('swipemove', [deltaX]);
+
+                // 组件的滑动方向 垂直 || 水平
+                me.trigger('swipemove', [me.slideDir == -1 ? deltaX : deltaY]);
+
             }
 
             function touchendHandler(ev) {
-                if(dir == 1) { return; }
-                me.trigger('swipeend', [deltaX]);
+                if(me.slideDir + swipeDir == 0) return;
+                me.trigger('swipeend', [me.slideDir == -1 ? deltaX : deltaY]);
                 body.off('touchmove', touchmoveHandler); 
                 body.off('touchend', touchendHandler);
             }
@@ -163,18 +164,18 @@
 
             this.on('swipemove', function(ev, offset) {
                 if(this.sliding) {return;}
-                var prev = offset > 0 ? this.get('eles.right') : this.get('eles.left');
-                var next = offset > 0 ? this.get('eles.left') : this.get('eles.right');
-                var prevOffset = offset > 0 ? this.width: -this.width;
-                var nextOffset = offset > 0 ? -this.width: this.width;
+                var prev = offset > 0 ? this.get('eles.after') : this.get('eles.before');
+                var next = offset > 0 ? this.get('eles.before') : this.get('eles.after');
+                var prevOffset = offset > 0 ? this.dirLength: -this.dirLength;
+                var nextOffset = offset > 0 ? -this.dirLength: this.dirLength;
 
                 if(!next[0] && offset != 0) {
                     offset /= 3; 
                 }
 
-                next.css(this._getOffsetXCss(offset + nextOffset));
-                prev.css(this._getOffsetXCss(prevOffset));
-                this.get('eles.middle').css(this._getOffsetXCss(offset));
+                next.css(this._getOffsetCss(offset + nextOffset));
+                prev.css(this._getOffsetCss(prevOffset));
+                this.get('eles.middle').css(this._getOffsetCss(offset));
             });
             this.on('swipeend', function(ev, offset) {
                 if(this.sliding) {return;}
@@ -185,10 +186,10 @@
                     goback = true;
                 }
                 if(goback) {
-                    var next = offset > 0 ? this.get('eles.left') : this.get('eles.right');
-                    var nextOffset = offset > 0 ? -this.width: this.width;
-                    me.get('eles.middle').animate(me._getOffsetXCss(0), RECUR_DURATION, 'ease');
-                    next.animate(me._getOffsetXCss(nextOffset), RECUR_DURATION, 'ease');
+                    var next = offset > 0 ? this.get('eles.before') : this.get('eles.after');
+                    var nextOffset = offset > 0 ? -this.dirLength: this.dirLength;
+                    me.get('eles.middle').animate(me._getOffsetCss(0), RECUR_DURATION, 'ease');
+                    next.animate(me._getOffsetCss(nextOffset), RECUR_DURATION, 'ease');
                 }
                 this.set('autoplay', isAutoplay);
             });
@@ -202,7 +203,7 @@
 
         _controlTapHandler: function(ev) {
             if(this.sliding) {return;}
-            
+
             var index = this.get('index');
             var to = this.controlItems.index(ev.currentTarget);
 
@@ -229,24 +230,24 @@
             var prevIndex = this.getPrevIndex();
             var nextIndex = this.getNextIndex();
             this.set('eles', {
-                left: prevIndex != -1 ? this.contItems.eq(prevIndex) : $(),
+                before: prevIndex != -1 ? this.contItems.eq(prevIndex) : $(),
                 middle: this.contItems.eq(cur),
-                right: nextIndex != -1 ? this.contItems.eq(nextIndex): $(),
+                after: nextIndex != -1 ? this.contItems.eq(nextIndex): $(),
                 control: this.controlItems.eq(cur)
-            }); 
+            });
             this.trigger('afterSwitch', [cur, prev]);
         },
 
         _onChangeEles: function(ev, curEles, prevEles) {
-            var width = this.width;
+            var length = this.dirLength;
             var duration = this.get('duration_ms');
             var activeClass = this.get('selectors.active').slice(1);
             var me = this;
 
             // dir = 1: 从右往左，  dir = -1: 从左往右
-            var next = this.dir == 1 ? prevEles.right : prevEles.left;
+            var next = this.dir == 1 ? prevEles.after : prevEles.before;
             if(next && next[0] != curEles.middle[0]) {
-                this._placeTo(curEles.middle, this.dir * width);
+                this._placeTo(curEles.middle, this.dir * length);
             }
 
             // 开始滑动
@@ -255,7 +256,7 @@
             // 触发reflow, 清除原来的transition遗留
             prevEles.middle && prevEles.middle.size() && prevEles.middle[0].clientLeft; 
             curEles.middle && curEles.middle.size() && curEles.middle[0].clientLeft; 
-            this._slideTo(prevEles.middle, -this.dir * width, duration);
+            this._slideTo(prevEles.middle, -this.dir * length, duration);
             this._slideTo(curEles.middle, 0, duration, animateCallback);
 
             function animateCallback() {
@@ -270,7 +271,7 @@
                     ele && ele.addClass(activeClass).css(prefix['css'] + 'transition-duration', '0');
                 });
 
-                // 设置好curEles的left, middle, right位置
+                // 设置好curEles的before, middle, after位置
                 me._getElesPosReady(curEles);
 
                 me.sliding = false;
@@ -294,17 +295,18 @@
 
         _getElesPosReady: function(eles) {
             this._placeTo(eles.middle, 0);
-            this._placeTo(eles.left, -this.width);
-            this._placeTo(eles.right, this.width);
+            this._placeTo(eles.before, -this.dirLength);
+            this._placeTo(eles.after, this.dirLength);
         },
 
-        _placeTo: function(ele, offsetX) {
+        _placeTo: function(ele, offset) {   
             if(!ele) return;
-            var cssObj = this._getOffsetXCss(offsetX);                
+            var cssObj = this._getOffsetCss(offset);                
             ele.css(cssObj);
         },
 
-        _slideTo: function(ele, offsetX, duration, callback) {
+        _slideTo: function(ele, offset, duration, callback) {
+            offset = Math.round(offset);
             if(!ele || !ele[0]) {return;}
 
             var style = ele[0].style;
@@ -315,20 +317,31 @@
             }
 
             // animate
-            style.cssText += cssPrefix + 'transition:' + duration + 
+            if(this.slideDir == -1) {
+                style.cssText += cssPrefix + 'transition:' + duration + 
                     'ms ease;' + cssPrefix + 'transform: translate3d(' + 
-                    offsetX + 'px, 0, 0);';
+                    offset + 'px, 0, 0);';
+            } else {
+                style.cssText += cssPrefix + 'transition:' + duration + 
+                    'ms ease;' + cssPrefix + 'transform: translate3d(0, ' + 
+                    offset + 'px, 0);';
+            }
             // callback
             setTimeout(function() {
                 callback && callback();
             }, duration);
         },
 
-        _getOffsetXCss: function(offsetX) {
+        _getOffsetCss: function(offset) {
+            offset = Math.round(offset);
             var cssObj = {};
-            cssObj[TRANSFORM_PROPERTY_NAME] = 'translate3d(' + offsetX + 'px, 0, 0)';
+            if(this.slideDir == -1) {
+                cssObj[TRANSFORM_PROPERTY_NAME] = 'translate3d(' + offset + 'px, 0, 0)';
+            } else {
+                cssObj[TRANSFORM_PROPERTY_NAME] = 'translate3d(0, ' + offset + 'px, 0)';
+            }
             return cssObj;
-        } 
+        }
 
     });
 
