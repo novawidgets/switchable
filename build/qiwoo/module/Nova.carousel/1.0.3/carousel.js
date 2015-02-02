@@ -226,7 +226,7 @@ Switchable = Switchable || this.Switchable;
 
             var isAutoplay = this.get('autoplay');
             this.set('autoplay', false);
-            this.switch(to);
+            this.switchTo(to);
             this.set('autoplay', isAutoplay);
         },
 
