@@ -4,11 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title></title>
-    <link rel="stylesheet" href="../build/carousel.1.0.2.css">
 
     <style type="text/css">
-        .cont-item img {
+        html, body {
             height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+
+        .nova-carousel {
+            height: 100%;
+        }
+
+        .nova-carousel .carousel-cont {
+            height: 100%;
+        }
+
+        .nova-carousel .carousel-cont .cont-item {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            height: 100%;
+        }
+
+        .carousel-cont .cont-item:nth-child(1) {
+            background: red;
+        }
+
+        .carousel-cont .cont-item:nth-child(2) {
+            background: green;
+        }
+
+        .carousel-cont .cont-item:nth-child(3) {
+            background: blue;
+        }
+
+        .cont-item img {
+            max-width: 100%;
             -webkit-user-drag: none;
         }
     </style>
@@ -16,9 +50,8 @@
 
     <script type="text/javascript" src="http://s0.qhimg.com/static/24fee17ef5eeefee/zepto_touch_fx.112.js"></script>
     <script src="../libs/widget.1.0.2.js"></script>
-    <script src="../build/carousel.1.0.2.jss"></script>
     <script src="../src/switchable.js"></script>
-    <script src="../src/carousel.js?xx"></script>
+    <script src="../src/carousel.js"></script>
    
 </head>
 <body>
@@ -26,12 +59,15 @@
     <div class="nova-carousel">
         <div class="carousel-cont">
             <div class="cont-item">
+                <h1>haha</h1>
                 <img src="1.jpg" alt="" class="src">
             </div>
             <div class="cont-item">
+                <h1>haha</h1>
                 <img src="2.jpg" alt="" class="src">
             </div>
             <div class="cont-item">
+                <h1>haha</h1>
                 <img src="3.jpg" alt="" class="src">
             </div>
         </div>
@@ -41,50 +77,21 @@
             <span class="control-item"></span>
         </div>
     </div>
-    <!--
-    <div class="nova-carousel">
-        <div class="carousel-cont">
-            <div class="cont-item">
-                <img src="1.jpg" alt="" class="src">
-            </div>
-            <div class="cont-item">
-                <img src="2.jpg" alt="" class="src">
-            </div>
-            <div class="cont-item">
-                <img src="3.jpg" alt="" class="src">
-            </div>
-        </div>
-        <div class="carousel-control">
-            <span class="control-item"></span>
-            <span class="control-item"></span>
-            <span class="control-item"></span>
-        </div>
-    </div>
-    -->
     <script>
         var carousel = new Carousel({
             element: $('.nova-carousel')[0],
-            autoplay: true,
-            autoplay_interval_ms: 1000,
-            selectors: {
-                controlItem: '.carousel-control span'
-            }
-        });
-
-        /*
-        var carousel2 = new Carousel({
-            element: $('.nova-carousel')[1],
             autoplay: false,
             autoplay_interval_ms: 2000,
+            direction: 'vertical',
             selectors: {
                 controlItem: '.carousel-control span'
             }
         });
 
-        carousel.on('beforeSlide', function(ev, to, from) {
-            //alert('from ' + from + ' to ' + to);
+        $(document.body).on('touchmove', function(e) {
+            e.preventDefault();
         });
-        */
+
     </script>
 </body>
 </html>

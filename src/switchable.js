@@ -16,7 +16,7 @@
             var index = this.get('index');
             var next= this.getNextIndex();
             if(next != -1) {
-                this.switch(next);
+                this.switchTo(next);
                 return true;
             }
             return false;
@@ -27,7 +27,7 @@
             var index = this.get('index');
             var prev = this.getPrevIndex();
             if( prev != -1) {
-                this.switch(prev);
+                this.switchTo(prev);
                 return true;
             }
             return false;
@@ -65,7 +65,7 @@
         },
 
         /* 切换到to, 成功返回true, 触发switch事件 */
-        switch: function(to) {
+        switchTo: function(to) {
             var from = this.get('index');
             if(from != to) {
                 this.set('index', to)
@@ -74,7 +74,7 @@
             }
             return false;
         },
-    });    
+    });
 
     this.Switchable = Switchable;
 })(); 
