@@ -57,8 +57,8 @@
             var selectors = me.get('selectors');
             me.slideDir = this.get('direction') == 'vertical' ? 1 : -1;
             // 初始化DOM
-            me.contItems = me.$element.find(selectors.content).find(selectors.contItem);
-            me.controlItems = me.$element.find(selectors.control).find(selectors.controlItem);
+            me.contItems = me.$element.children(selectors.content).children(selectors.contItem);
+            me.controlItems = me.$element.children(selectors.control).children(selectors.controlItem);
             me.dirLength = me._getSlideLength();
 
             // 绑定index, eles的change事件
@@ -106,28 +106,30 @@
             var body = $(document.body)
             var curTouch, startX, startY, deltaX, deltaY, swipeDir;
             var isAutoplay;
+            var stopPropogation;
 
-            body.on('touchstart', function(ev) {
+            element.on('touchstart', function(ev) {
+                //ev.stopPropagation();
                 isAutoplay = me.get('autoplay');
+                stopPropagation = false;
+
+                // FIX: 二次确保这些事件已经被注销
                 body.off('touchmove', touchmoveHandler);
                 body.off('touchend', touchendHandler);
                 body.off('touchcancel', touchendHandler);
 
-                if ( element[0] === ev.target || element[0].contains(ev.target) ) {
+                curTouch = ev.touches[0];
+                startX = curTouch.pageX;
+                startY = curTouch.pageY;
+                deltaX = 0;
+                deltaY = 0;
+                swipeDir = undefined;
 
-                    curTouch = ev.touches[0];
-                    startX = curTouch.pageX;
-                    startY = curTouch.pageY;
-                    deltaX = 0;
-                    deltaY = 0;
-                    swipeDir = undefined;
+                body.on('touchmove', touchmoveHandler);
+                body.on('touchend', touchendHandler);
+                body.on('touchcancel', touchendHandler);
 
-                    body.on('touchmove', touchmoveHandler);
-                    body.on('touchend', touchendHandler);
-                    body.on('touchcancel', touchendHandler);
-
-                    me.trigger('swipestart');
-                }
+                me.trigger('swipestart');
             });
 
             function touchmoveHandler(ev) {
@@ -141,6 +143,15 @@
 
                 //如果 手指初始触摸的方向 跟设置的组件的滑动方向不同， 不滑动组件
                 if(me.slideDir + swipeDir == 0) return;
+
+                // 在carousel有嵌套时，注销外部carousel的事件
+                if(!stopPropagation) {
+                    body.off('touchmove touchend touchcancel');
+                    body.on('touchmove', touchmoveHandler);
+                    body.on('touchend', touchendHandler);
+                    body.on('touchcancel', touchendHandler);
+                    stopPropagation = true;
+                }
 
                 ev.preventDefault();
 
