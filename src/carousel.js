@@ -146,7 +146,7 @@
 
                 // 在carousel有嵌套时，注销外部carousel的事件
                 if(!stopPropagation) {
-                    body.off('touchmove touchend touchcancel');
+                    body.off('touchmove');
                     body.on('touchmove', touchmoveHandler);
                     body.on('touchend', touchendHandler);
                     body.on('touchcancel', touchendHandler);
