@@ -1,4 +1,15 @@
-(function() {
+(function(root, factory) {
+if(typeof exports === 'object') {
+module.exports = factory.apply(root);
+} else if(typeof define === 'function' && define.amd) {
+define(['module/widget/1.0.2/widget'], function() {return factory.apply(root, arguments)});
+} else {
+root['Switchable'] = factory.apply(root);
+}
+})(this, function(Widget) {
+Widget = Widget || this.Widget;
+
+
     var Switchable = Widget.extend({
         /* 默认配置 */
         attrs: {
@@ -76,5 +87,5 @@
         },
     });
 
-    this.Switchable = Switchable;
-})(); 
+    return Switchable;
+});

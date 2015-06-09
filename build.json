@@ -1,6 +1,6 @@
 {
     "switchable": {
-        "version": "1.0.3",
+        "version": "1.0.4",
         "files" : {
         },
         "module": "Nova.switchable",
@@ -10,38 +10,38 @@
         }
     },
     "carousel": {
-        "version": "1.0.3",
+        "version": "1.0.4",
         "files": {
-            "build/carousel.1.0.3.js" : [
+            "build/carousel.1.0.4.js" : [
                 "src/switchable.js",
                 "src/carousel.js"
             ],
-            "build/carousel.1.0.3.css" : [
+            "build/carousel.1.0.4.css" : [
                 "src/carousel.css"
             ]
         },
         "module": "Nova.carousel",
         "src": "src/carousel.js",
         "requires": {
-            "Switchable": "module/Nova.switchable/1.0.3/switchable"
+            "Switchable": "module/Nova.switchable/1.0.4/switchable"
         }
     },
     "tab": {
-        "version": "1.0.3",
+        "version": "1.0.4",
         "files": {
-            "build/tab.1.0.3.js" : [
+            "build/tab.1.0.4.js" : [
                 "src/switchable.js",
                 "src/carousel.js",
                 "src/tab.js"
             ],
-            "build/tab.1.0.3.css" : [
+            "build/tab.1.0.4.css" : [
                 "src/tab.css"
             ]
         },
         "module": "Nova.tab",
         "src": "src/tab.js",
         "requires": {
-            "Carousel": "module/Nova.carousel/1.0.3/carousel"
+            "Carousel": "module/Nova.carousel/1.0.4/carousel"
         }
     }
 }
