@@ -4,7 +4,8 @@
 1. 修复新版webkit动画渲染问题
 2. 支持两个滑动项循环滑动
 3. 新增current类，当前切换到的滑动项上会有此类
-3. 将配置recursive名称改为recyclable
+4. 将配置recursive名称改为recyclable
+5. 支持多个Carousel嵌套
 
 ## 1.0.3
 1. 支持垂直滑动
