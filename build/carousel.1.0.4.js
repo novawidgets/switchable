@@ -160,6 +160,7 @@
 
             // 如果标签数为1，则关闭Swipable
             if(me.get('count') <= 1) {
+                me.set('recyclable', false);
                 me.set('swipable', false);
             }
 
