@@ -1,5 +1,8 @@
 # Switchable Change History
 
+## 1.0.5
+1. 升级底层为Nova.1.0.0.js
+
 ## 1.0.4
 1. 修复新版webkit动画渲染问题
 2. 支持两个滑动项循环滑动

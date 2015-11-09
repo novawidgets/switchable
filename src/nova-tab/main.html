@@ -1,0 +1,104 @@
+<template is="dom-module">
+    <style>
+        /* common styles */
+        :host {
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        :host .contents {
+            position: relative;
+        }
+
+        .contents ::content > * {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            visibility: hidden;
+            overflow: hidden;
+        }
+
+        .contents ::content > .active {
+            visibility: visible;
+            z-index: 1;
+        }
+
+        /* custom styles */
+        :host {
+            border-radius: 5px;
+        }
+        :host[default-style] .contents {
+            height: 252px;
+        }
+
+        :host[default-style] .controls {
+            background: #FAFAFA;
+            border-bottom: 1px solid #F2F2F2;
+            color: #757575;
+            line-height: 40px;
+            display: table;
+            width: 100%;
+        }
+
+        :host[default-style] .controls ::content > .tab {
+            box-sizing: border-box;
+            display: table-cell;
+            text-align: center;
+            border-bottom: 1px solid #FAFAFA;
+        }
+
+        :host[default-style] .controls ::content > .tab.active {
+            color: #01BCD4;
+            border-bottom: 1px solid #01BCD4;
+        }
+
+    </style>
+    <template>
+        <div class="controls">
+            <content select=".tab"></content>
+        </div>
+        <div class="contents">
+            <content></content>
+        </div>
+    </template>
+    <script require-src="src/nova-carousel/main"></script>
+    <script>
+        Nova.Components.NovaTab = Nova({
+            is: 'nova-tab',
+            behaviors: [Nova.Components.NovaCarousel],
+            props: {
+                animate: {
+                    type: Boolean,
+                    value: true
+                },
+                loop: {
+                    type: Boolean,
+                    value: false
+                }
+            },
+            createdHandler: function() {
+                if(!this.animate) {
+                    this.swipable = false;
+                    this.durationMs = 0;
+                }
+            },
+            _initControls: function() {
+                var me = this;
+                var length = me.contItems.length;
+                var controlsWrap = me.$.children('.controls');
+
+                me.controlItems = me.$.children('.controls').children();
+
+                // 绑定tap事件
+                me.controlItems.on('tap', function() {
+                    me._controlTapHandler.apply(me, arguments);
+                });
+            }
+        });
+    </script>
+</template>

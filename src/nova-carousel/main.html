@@ -1,0 +1,482 @@
+<template is="dom-module">
+    <style>
+        /* common styles */
+        :host {
+            display: block;
+            position: relative;
+        }
+
+        :host .contents {
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contents ::content > * {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            visibility: hidden;
+            overflow: hidden;
+        }
+
+        .contents ::content > .active {
+            visibility: visible;
+            z-index: 1;
+        }
+
+        /* default styles */
+        :host[default-style] {
+            height: 300px;
+        }
+
+        :host[default-style] .controls {
+            position: absolute;
+            z-index: 5;
+            text-align: center;
+            line-height: 30px;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+
+        :host[default-style] .controls span {
+            display: inline-block;
+            margin: 0 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 5px;
+            background: rgba(0, 0, 0, .45);
+        }
+
+        :host[default-style] .controls span.current {
+            background: white;
+        }
+
+
+    </style>
+    <template>
+        <div class="controls"></div>
+        <div class="contents">
+            <content></content>
+        </div>
+    </template>
+    <script require-src="src/nova-carousel/switchable"></script>
+    <script>
+        (function() {
+            var prefix = (function () {
+                var styles = window.getComputedStyle(document.documentElement, ''),
+                pre = (Array.prototype.slice
+                       .call(styles)
+                       .join('') 
+                       .match(/-(moz|webkit|ms)-/) || (styles.OLink === '' && ['', 'o'])
+                      )[1],
+                      dom = ('WebKit|Moz|MS|O').match(new RegExp('(' + pre + ')', 'i'))[1];
+                      return {
+                          dom: dom,
+                          lowercase: pre,
+                          css: '-' + pre + '-',
+                          js: pre[0].toUpperCase() + pre.substr(1)
+                      };
+            })();
+
+            var SWIPE_DISTANCE_MIN = 25,
+                RECUR_DURATION = 200,
+                TRANSFORM_PROPERTY_NAME = prefix['css'] + 'transform';
+
+            Nova.Components.NovaCarousel= Nova({
+                is: 'nova-carousel',
+                behaviors: [window.Nova.Components._Switchable],
+                props: {
+                    index: {
+                        type: Number,
+                        value: 0
+                    },
+                    loop: {
+                        type: Boolean,
+                        value: true
+                    },
+                    durationMs: {
+                        type: Number,
+                        value: 200
+                    },
+                    autoplay: {
+                        type: Boolean,
+                        value: false
+                    },
+                    autoplayIntervalMs: {
+                        type: Number,
+                        value: 10000
+                    },
+                    swipable: {
+                        type: Boolean,
+                        value: true
+                    },
+                    direction : {
+                        type: String,
+                        value: 'horizontal'
+                    },
+                    currentClassName: {
+                        type: String,
+                        value: 'current'
+                    },
+                    eles: {
+                        type: Object,
+                        value: function() {
+                            return {
+                                before: null,
+                                middle: null,
+                                after: null,
+                                control: null
+                            };
+                        }
+                    }
+                },
+                createdHandler: function() {
+                    var me = this;
+                    me.$ = $(me);
+
+                    // 监听index和_eles
+                    me.on('_indexChanged', me._onChangeIndex);
+                    me.on('_elesChanged', me._onChangeEles);
+                    me.on('_autoplayChanged', me._onChangeAutoplay);
+
+                    me._onChangeAutoplay(null, !this.autoplay, this.autoplay);
+
+                    // 绑定prev, next方法执行前的事件
+                    me.before('prev', me._beforePrev);
+                    me.before('next', me._beforeNext);
+                },
+
+                attachedHandler: function() {
+                    var me = this;
+
+                    // 初始化DOM
+                    me.contItems = me.$.children('.contents').children();
+                    me._initControls();
+
+                    me.slideDir = me.direction == 'vertical' ? 1 : -1;
+                    me.dirLength = me._getSlideLength();
+
+                    // 设置index, count
+                    me.count = me.contItems.length;
+
+                    // 如果标签数为1，则关闭Swipable
+                    if(me.count <= 1) {
+                        me.loop = false;
+                        me.swipable = false;
+                    }
+
+                    this.trigger('_indexChanged', [this.index, this.index]);
+
+                    this.swipable && this._initSwipe(me.contItems.parent());
+
+                    this._bindResizeHandler();
+                },
+
+                refresh: function() {
+                    this.dirLength = this._getSlideLength();
+                    this._placeTo(this.eles.before, -this.dirLength);
+                    this._placeTo(this.eles.after, this.dirLength);
+                },
+
+                _initControls: function() {
+                    var me = this;
+                    var length = me.contItems.length;
+                    var controlsWrap = me.$.children('.controls');
+                    for(var i = 0; i < length; i++) {
+                        var item = $('<span class="nova-carousel"></span>');
+                        controlsWrap.append(item);
+                    }
+
+                    me.controlItems = me.$.children('.controls').children();
+
+                    // 绑定tap事件
+                    me.controlItems.on('tap', function() {
+                        me._controlTapHandler.apply(me, arguments);
+                    });
+                },
+
+                _getSlideLength : function() {
+                    return this.slideDir == -1 ? this.contItems.parent().width() : this.contItems.parent().height();
+                },
+
+                _initSwipe: function(element) {
+                    var me = this;
+                    var body = $(document.body)
+                    var curTouch, startX, startY, deltaX, deltaY, swipeDir;
+                    var isAutoplay;
+                    var stopPropagation;
+
+                    element.on('touchstart', function(ev) {
+                        //ev.stopPropagation();
+                        isAutoplay = me.autoplay;
+                        stopPropagation = false;
+
+                        // FIX: 二次确保这些事件已经被注销
+                        body.off('touchmove', touchmoveHandler);
+                        body.off('touchend', touchendHandler);
+                        body.off('touchcancel', touchendHandler);
+
+                        curTouch = ev.touches[0];
+                        startX = curTouch.pageX;
+                        startY = curTouch.pageY;
+                        deltaX = 0;
+                        deltaY = 0;
+                        swipeDir = undefined;
+
+                        body.on('touchmove', touchmoveHandler);
+                        body.on('touchend', touchendHandler);
+                        body.on('touchcancel', touchendHandler);
+
+                        me.trigger('swipestart');
+                    });
+
+                    function touchmoveHandler(ev) {
+                        var touch = ev.touches[0];
+                        deltaX = touch.pageX - startX;
+                        deltaY = touch.pageY - startY;
+                        // 手指初始触摸的方向 1: 垂直方向 -1: 水平方向
+                        if(swipeDir == undefined) {
+                            swipeDir = Math.abs(deltaY) > Math.abs(deltaX) ? 1 : -1;
+                        }
+
+                        //如果 手指初始触摸的方向 跟设置的组件的滑动方向不同， 不滑动组件
+                        if(me.slideDir + swipeDir == 0) return;
+
+                        // 在carousel有嵌套时，注销外部carousel的事件
+                        if(!stopPropagation) {
+                            body.off('touchmove');
+                            body.on('touchmove', touchmoveHandler);
+                            body.on('touchend', touchendHandler);
+                            body.on('touchcancel', touchendHandler);
+                            stopPropagation = true;
+                        }
+
+                        ev.preventDefault();
+
+                        // 组件的滑动方向 垂直 || 水平
+                        me.trigger('swipemove', [me.slideDir == -1 ? deltaX : deltaY]);
+
+                    }
+
+                    function touchendHandler(ev) {
+                        me.autoplay = isAutoplay;
+                        if(me.slideDir + swipeDir == 0) return;
+                        me.trigger('swipeend', [me.slideDir == -1 ? deltaX : deltaY]);
+                        body.off('touchmove', touchmoveHandler); 
+                        body.off('touchend', touchendHandler);
+                    }
+
+                    this.on('swipestart', function() {
+                        me.autoplay = false;
+                    })
+
+                    this.on('swipemove', function(ev, offset) {
+                        if(this.sliding) {return;}
+                        var prev = offset > 0 ? this.eles.after : this.eles.before;
+                        var next = offset > 0 ? this.eles.before : this.eles.after;
+                        var prevOffset = offset > 0 ? this.dirLength: -this.dirLength;
+                        var nextOffset = offset > 0 ? -this.dirLength: this.dirLength;
+
+                        if(!next[0] && offset != 0) {
+                            offset /= 3; 
+                        }
+
+                        next.css(this._getOffsetCss(offset + nextOffset));
+                        prev[0] != next[0] && prev.css(this._getOffsetCss(prevOffset));
+                        this.eles.middle.css(this._getOffsetCss(offset));
+                    });
+                    this.on('swipeend', function(ev, offset) {
+                        if(this.sliding) {return;}
+                        var goback = false;
+                        if(Math.abs(offset) > SWIPE_DISTANCE_MIN) {
+                            goback = !(offset > 0 ? this.prev() : this.next());                     
+                        } else {
+                            goback = true;
+                        }
+                        if(goback) {
+                            var next = offset > 0 ? this.eles.before : this.eles.after;
+                            var nextOffset = offset > 0 ? -this.dirLength: this.dirLength;
+                            me.eles.middle.animate(me._getOffsetCss(0), RECUR_DURATION, 'ease');
+                            next.animate(me._getOffsetCss(nextOffset), RECUR_DURATION, 'ease');
+                        }
+                    });
+                },
+
+                _bindResizeHandler: function() {
+                    var me = this;
+                    $(window).on('resize', function() {
+                        me.refresh();
+                    });
+                },
+
+                _controlTapHandler: function(ev) {
+                    if(this.sliding) {return;}
+
+                    var index = this.index;
+                    var to = this.controlItems.index(ev.currentTarget);
+
+                    if(to != index) {
+                        this._dir = to > index ? 1 : -1;
+                    }
+
+                    var isAutoplay = this.autoplay;
+                    this.autoplay = false;
+                    this.switchTo(to);
+                    this.autoplay = isAutoplay;
+                },
+
+                _beforePrev: function() {
+                    this._dir = -1;
+                },
+
+                _beforeNext: function() {
+                    this._dir = 1;
+                },
+
+                _onChangeIndex: function(ev, prev, cur) {
+                    this.trigger('beforeSwitch', [cur, prev]);
+                    var prevIndex = this.getPrevIndex();
+                    var nextIndex = this.getNextIndex();
+                    this.eles = {
+                        before: prevIndex != -1 ? this.contItems.eq(prevIndex) : $(),
+                        middle: this.contItems.eq(cur),
+                        after: nextIndex != -1 ? this.contItems.eq(nextIndex): $(),
+                        control: this.controlItems.eq(cur)
+                    };
+                    this.trigger('afterSwitch', [cur, prev]);
+                },
+
+                _onChangeEles: function(ev, prevEles, curEles) {
+                    var length = this.dirLength;
+                    var duration = this.durationMs;
+                    var activeClass = 'active';
+                    var currentClass = this.currentClassName;
+                    var me = this;
+
+                    // _dir = 1: 从右往左，  _dir = -1: 从左往右
+                    var next = this._dir == 1 ? prevEles.after : prevEles.before;
+
+                    // 若将要滑动到中央的元素，初始位置未设置好
+                    // 例如：通过carousel-control点击切换到非相连的元素
+                    if(next && (next[0] != curEles.middle[0] || this._getTranslateOffset(next) * this._dir < 0)) {
+                        this._placeTo(curEles.middle, this._dir * length);
+                    }
+
+                    // 开始滑动
+                    this.sliding = true;
+
+                    // 触发reflow, 清除原来的transition遗留
+                    prevEles.middle && prevEles.middle.size() && prevEles.middle[0].clientLeft;
+                    curEles.middle && curEles.middle.size() && curEles.middle[0].clientLeft; 
+
+                    this._slideTo(prevEles.middle, -this._dir * length, duration);
+                    this._slideTo(curEles.middle, 0, duration, animateCallback);
+
+                    function animateCallback() {
+
+                        // 将prevEles中，不在curEles的element去掉active
+                        $.each(prevEles, function(name, ele) {
+                            ele && ele.removeClass(activeClass);
+                            ele && ele.removeClass(currentClass);
+                        });
+                        prevEles.middle && prevEles.middle.removeClass(currentClass);
+
+                        // 为curEles, 加上active
+                        $.each(curEles, function(name, ele) {
+                            ele && ele.addClass(activeClass).css(prefix['css'] + 'transition', 'none');
+                        });
+                        curEles.middle && curEles.middle.addClass(currentClass);
+                        curEles.control && curEles.control.addClass(currentClass);
+
+                        //me._forceRender(curEles);
+
+                        // 设置好curEles的before, middle, after位置
+                        me._getElesPosReady(curEles);
+
+                        me.sliding = false;
+                    }
+                },
+
+                _onChangeAutoplay: function(ev, prevAutoplay, autoplay) {
+                    if(autoplay == prevAutoplay) { return; }
+                    var me = this;
+                    if(autoplay) {
+                        this.autoplayTimer = setInterval(function() {
+                            if(!me.sliding) {
+                                me.next(); 
+                            }
+                        }, this.autoplayIntervalMs);
+                    } else {
+                        clearInterval(this.autoplayTimer);
+                        this.autoplayTimer = undefined;
+                    } 
+                },
+
+                _getElesPosReady: function(eles) {
+                    this._placeTo(eles.middle, 0);
+                    this._placeTo(eles.before, -this.dirLength);
+                    this._placeTo(eles.after, this.dirLength);
+                },
+
+                _placeTo: function(ele, offset) {
+                    if(!ele) return;
+                    var cssObj = this._getOffsetCss(offset);
+                    ele.css(cssObj);
+                },
+
+                _slideTo: function(ele, offset, duration, callback) {
+                    offset = Math.round(offset);
+                    if(!ele || !ele[0]) {return;}
+
+                    var style = ele[0].style;
+                    var cssPrefix = prefix['css'];
+
+                    if ( !style ) {
+                        return;
+                    }
+
+                    // animate
+                    if(this.slideDir == -1) {
+                        style.cssText += cssPrefix + 'transition:' + duration +
+                            'ms ease;' + cssPrefix + 'transform: translate3d(' +
+                            offset + 'px, 0, 0);';
+                    } else {
+                        style.cssText += cssPrefix + 'transition:' + duration +
+                            'ms ease;' + cssPrefix + 'transform: translate3d(0, ' +
+                            offset + 'px, 0);';
+                    }
+                    // callback
+                    setTimeout(function() {
+                        callback && callback();
+                    }, duration);
+                },
+
+                _getOffsetCss: function(offset) {
+                    offset = Math.round(offset);
+                    var cssObj = {};
+                    if(this.slideDir == -1) {
+                        cssObj[TRANSFORM_PROPERTY_NAME] = 'translate3d(' + offset + 'px, 0, 0)';
+                    } else {
+                        cssObj[TRANSFORM_PROPERTY_NAME] = 'translate3d(0, ' + offset + 'px, 0)';
+                    }
+                    return cssObj;
+                },
+
+                _getTranslateOffset: function(ele) {
+                    var transform = window.getComputedStyle(ele[0])[TRANSFORM_PROPERTY_NAME],
+                        isMatrix3d = transform.indexOf('3d') >= 0,
+                        vector = transform.match(/\((.*)\)/)[1].split(','),
+                        tIndex = isMatrix3d ? [12, 13] : [4, 5];
+                    tIndex = this.slideDir == -1 ? tIndex[0] : tIndex[1];
+                    return parseInt(vector[tIndex]);
+                }
+             });
+         })();
+    </script>
+</template>

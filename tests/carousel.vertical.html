@@ -4,229 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title></title>
+    <link rel="stylesheet" href="http://s3.qhimg.com/static/9b788b893b345ebf/reset.css">
 
     <style type="text/css">
+
         html, body {
             height: 100%;
-            padding: 0;
-            margin: 0;
         }
 
-        .nova-carousel {
+        nova-carousel {
+            display: block;
+        }
+
+        nova-carousel[unresolved] {
+            opacity: 0;
+        }
+
+        .outer {
             height: 100%;
         }
 
-        .nova-carousel .carousel-cont {
+        .outer > .contents > div {
             height: 100%;
-        }
-
-        .nova-carousel .carousel-cont .cont-item {
-            position: absolute;
             width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            height: 100%;
         }
 
-        .carousel-cont .cont-item:nth-child(1) {
-            background: red;
+        .inner {
+            height: 300px;
         }
-
-        .carousel-cont .cont-item:nth-child(2) {
-            background: green;
-        }
-
-        .carousel-cont .cont-item:nth-child(3) {
-            background: blue;
-        }
-
-        .cont-item img {
-            max-width: 100%;
-            -webkit-user-drag: none;
-        }
-
-/* Required */
-.inner-carousel .carousel-cont {
-    position: relative;
-	height: 100%;
-	overflow: hidden;
-}
-
-.inner-carousel .carousel-cont .cont-item {
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	top: 0
-	left: 0;
-	box-sizing: border-box;
-	-webkit-box-sizing: border-box;
-	visibility: hidden;
-    overflow: hidden;
-}
-
-.inner-carousel .carousel-cont .cont-item.active {
-	visibility: visible;
-	z-index: 1;
-}
-
-.most-inner-carousel {
-    width: 200px;
-    height: 150px;
-    position: absolute;
-}
-
-/* Customized */
-.inner-carousel  {
-	position: relative;
-	width: 100%;
-	height: 300px;
-	text-align: center;
-}
-
-.inner-carousel .carousel-cont .cont-item {
-    text-align: middle;
-}
-
-.inner-carousel .carousel-control {
-	display: inline-block;
-	position: absolute;
-    width: 100%;
-    box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-    text-align: right;
-    bottom: 0;
-    left: 0;
-	z-index: 2;
-    padding: 5px 0; 
-    padding-right: 5px;
-	background-color: rgba(0, 0, 0, .5);
-}
-
-.inner-carousel .carousel-control .control-item {
-	display: inline-block;
-	margin-right: 6px;
-	width: 18px;
-	height: 18px;
-	border-radius: 4px;
-	background-color: rgba(255,255,255,.3);
-}
-
-.inner-carousel .carousel-control .control-item.active {
-    background-color: white;
-}
-
-.inner-carousel .carousel-cont .cont-item img {
-    width: 100%;
-    height: 100%;
-}
-
     </style>
 
 
-    <script type="text/javascript" src="http://s0.qhimg.com/static/24fee17ef5eeefee/zepto_touch_fx.112.js"></script>
-    <script src="../libs/widget.1.0.2.js"></script>
-    <script src="../src/switchable.js"></script>
-    <script src="../src/carousel.js"></script>
-   
 </head>
 <body>
+    <script type="text/javascript" src="http://s0.qhimg.com/static/24fee17ef5eeefee/zepto_touch_fx.112.js"></script>
 
-    <div class="nova-carousel">
-        <div class="carousel-cont">
-            <div class="cont-item">
-                <div class="inner-carousel">
-                    <div class="carousel-cont">
-                        <div class="cont-item">
-                            <div class="most-inner-carousel">
-                                <div class="carousel-cont">
-                                    <div class="cont-item">
-                                        <img src="1.jpg" alt="" class="src">
-                                    </div>
-                                    <div class="cont-item">
-                                        <img src="2.jpg" alt="" class="src">
-                                    </div>
-                                    <!--
-                                    <div class="cont-item">
-                                        <img src="3.jpg" alt="" class="src">
-                                    </div>
-                                    -->
-                                </div>
-                            </div>
-                            <img src="1.jpg" alt="" class="src">
-                        </div>
-                        <div class="cont-item">
-                            <img src="2.jpg" alt="" class="src">
-                        </div>
-                        <!--
-                        <div class="cont-item">
-                            <img src="3.jpg" alt="" class="src">
-                        </div>
-                        -->
-                    </div>
-                    <div class="carousel-control">
-                        <span class="control-item"></span>
-                        <span class="control-item"></span>
-                        <!--
-                        <span class="control-item"></span>
-                        -->
-                    </div>
-                </div>
+    <script src="http://s0.qhimg.com/static/c194ef77618ac141/nova_polyfills.js"></script>
+    <script src="/nova/build/nova.js"></script>
 
-            </div>
-            <div class="cont-item">
-                <h1>haha</h1>
-                <img src="2.jpg" alt="" class="src">
-            </div>
-            <div class="cont-item">
-                <h1>haha</h1>
-                <img src="3.jpg" alt="" class="src">
-            </div>
+    <link rel="import" href="../src/nova-carousel/main.html" />
+    <script src="http://s7.qhimg.com/!9cf3a0f2/nova_dev.js" base-url="/novaUI/src/widgets/switchable"></script>
+
+    <nova-carousel unresolved class="outer" direction="vertical">
+        <div style="background:#f88">
+            <nova-carousel unresolved class="inner" default-style>
+                <img src="1.jpg" alt="">
+                <img src="2.jpg" alt="">
+                <img src="3.jpg" alt="">
+            </nova-carousel>
         </div>
-        <div class="carousel-control">
-            <span class="control-item"></span>
-            <span class="control-item"></span>
-            <span class="control-item"></span>
-        </div>
-    </div>
-    <script>
-        // 外部carousel
-        var carousel = new Carousel({
-            element: $('.nova-carousel')[0],
-            autoplay: false,
-            autoplay_interval_ms: 2000,
-            direction: 'vertical',
-            selectors: {
-                controlItem: '.carousel-control span'
-            }
-        });
+        <div style="background:#8f8"></div>
+        <div style="background:#88f"></div>
+    </nova-carousel>
 
-        // 内部carousel
-        var carousel = new Carousel({
-            element: $('.inner-carousel')[0],
-            autoplay: true,
-            autoplay_interval_ms: 2000,
-            direction: 'horizontal',
-            selectors: {
-                controlItem: '.carousel-control span'
-            }
-        });
-        $(document.body).on('touchmove', function(e) {
-            e.preventDefault();
-        });
-
-        // most inner carousel
-        var carousel = new Carousel({
-            element: $('.most-inner-carousel')[0],
-            autoplay: false,
-            autoplay_interval_ms: 2000,
-            direction: 'horizontal',
-        });
-        $(document.body).on('touchmove', function(e) {
-            e.preventDefault();
-        });
-
-
-    </script>
 </body>
 </html>
